@@ -1,54 +1,58 @@
 function whileOutside () {
-    if (timer >= 0) {
+    if (timer > 0) {
         timer += -1
-    } else {
-        vibration += 1
+    } else if (timer <= 0) {
+    	
     }
     checkPins()
 }
 function whileInside () {
-    basic.showIcon(IconNames.Heart)
-    basic.pause(300)
+    basic.showLeds(`
+        # # . # #
+        # # . # #
+        # # . # #
+        # # . # #
+        # # . # #
+        `)
+    basic.pause(500)
     basic.clearScreen()
-    basic.pause(300)
+    basic.pause(500)
 }
 function checkPins () {
-    if (pins.digitalReadPin(DigitalPin.P0) == 1) {
-        dfplayermini.press(dfplayermini.playType.Stop)
-        Index = 1
+    if (pins.digitalReadPin(DigitalPin.P15) == 1) {
+        dfplayermini.press(dfplayermini.playType.Play)
     }
-    dfplayermini.playFile(Index, dfplayermini.isRepeat.No)
+    if (pins.digitalReadPin(DigitalPin.P15) == 0) {
+        dfplayermini.press(dfplayermini.playType.Pause)
+    }
 }
 function reset () {
     timer = randint(3, 60)
-    vibration = 0
     music.setBuiltInSpeakerEnabled(true)
+    pins.digitalWritePin(DigitalPin.P9, 1)
+    pins.digitalWritePin(DigitalPin.P13, 1)
 }
+let timer = 0
 let Index = 0
 let vibration = 0
-let timer = 0
-dfplayermini.connect(SerialPin.P2, SerialPin.P8)
-dfplayermini.setVolume(25)
+dfplayermini.connect(SerialPin.P8, SerialPin.P14)
+dfplayermini.setVolume(10)
 timer = 0
-vibration = 0
 let ifInside = 1
-let closed = 1
-Index = 0
 basic.forever(function () {
-    if (input.lightLevel() < 100 && ifInside == 1) {
+    if (input.lightLevel() < 70 && ifInside == 1) {
         whileInside()
-    } else if (input.lightLevel() < 100) {
-        closed = 1
+    } else if (input.lightLevel() < 70) {
         ifInside = 1
-        vibration = 0
         music.setBuiltInSpeakerEnabled(false)
+        pins.digitalWritePin(DigitalPin.P9, 0)
+        pins.digitalWritePin(DigitalPin.P13, 0)
         whileInside()
-    } else if (input.lightLevel() >= 100 && ifInside == 1) {
-        closed = 0
+    } else if (input.lightLevel() >= 70 && ifInside == 1) {
         ifInside = 0
         reset()
         whileOutside()
-    } else if (input.lightLevel() >= 100) {
+    } else if (input.lightLevel() >= 70) {
         whileOutside()
     }
 })
